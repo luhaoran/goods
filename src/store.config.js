@@ -5,23 +5,29 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state:{
-        api:"http://api.luhaoran.cn",
-        products:[],
+        domain:'https://good.pinge.pro',
+        userInfo:'',
+        setting:'',
+        shopCode:'10005',
+        request:'',
         cartList:[],
-        countPrice:0
+        cartNums:0
     },
     mutations:{
-        countChange(state,num){
-            state.count += num
+        userInfoSave(state,value){
+            state.userInfo = value
         },
-        productsSave(state,value){
-            state.products = value
+        settingSave(state,value){
+            state.setting = value
         },
-        carListSave(state,value){
+        cartListSave(state,value){
             state.cartList = value
         },
-        countPriceChange(state,value){
-            state.countPrice = value
+        cartNumsAdd(state){
+            state.cartNums += 1
+        },
+        cartNumsRed(state){
+            state.cartNums -= 1
         }
     }
 })

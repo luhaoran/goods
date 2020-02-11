@@ -1,16 +1,15 @@
 import Vue from 'vue';
-import ElementUI from 'element-ui';
-import 'element-ui/lib/theme-chalk/index.css';
 import Index from './components/Index';
 import router from './router.config'; //路由
-import store from './store.config' //vuex
 import axios from 'axios'
-import ZKTable from 'vue-table-with-tree-grid'
+import store from './store.config' //vuex
+import Vant from 'vant';
+import 'vant/lib/index.css';
 
+Vue.use(Vant);
 
-Vue.use(ZKTable)
 Vue.prototype.$axios = axios
-axios.defaults.baseURL = "https://www.liulongbin.top:8888/api/private/v1"
+axios.defaults.baseURL = "/10005"
 
 //axios传输数据时，在headers中添加Authorization
 axios.interceptors.request.use(config => {
@@ -18,14 +17,11 @@ axios.interceptors.request.use(config => {
   return config
 })
 
-Vue.use(ElementUI);
-
-
 
 Vue.config.productionTip = false
 
 new Vue({
-  router,
   store,
+  router,
   render: h => h(Index),
 }).$mount('#app')
