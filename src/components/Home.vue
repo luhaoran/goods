@@ -9,24 +9,25 @@
     </swiper>
     <div class="switchItem">
       <van-dropdown-menu>
-        <van-dropdown-item v-model="nowIndex" :options="category" :title="nowName" />
+        <van-dropdown-item v-model="nowIndexb" :options="category" :title="nowName" />
       </van-dropdown-menu>
+      <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
+        <van-tag plain type="warning">{{youhui[0]}}</van-tag>
+        <van-tag plain type="warning">更多优惠</van-tag>
+      </div>
       <div class="sortWrap">
-        <span>
-          价格
-          <van-icon name="arrow-down" />
-        </span>
-        <span>
-          销量
-          <van-icon name="arrow-down" />
-        </span>
-        <span>
-          名称
-          <van-icon name="arrow-down" />
+        <span
+          v-for="(item,index) in sortConfig"
+          :key="JSON.stringify(item)"
+          :class="[item.active&&'active']"
+          @click="sort(index)"
+        >
+          {{item.name}}
+          <van-icon :name="item.icon" />
         </span>
       </div>
     </div>
-    <div class="productList">
+    <div class="productList clearfix">
       <div class="productItem" v-for="item in nowProducts" :key="JSON.stringify(item)">
         <van-image
           @click="showDetail(item)"
@@ -57,7 +58,7 @@
       v-model="showDetailVisible"
       round
       position="bottom"
-      :style="{ height: '94%' }"
+      :style="{ height: '96%' }"
       closeable
       close-icon-position="top-left"
     >
@@ -69,7 +70,10 @@
           </swiper-slide>
         </swiper>
         <div class="text detailText">
-          <p class="title"><span>{{nowProduct.name}}</span> {{nowProduct.unit}}</p>
+          <p class="title">
+            <span>{{nowProduct.name}}</span>
+            {{nowProduct.unit}}
+          </p>
           <p class="note">{{nowProduct.info}}</p>
           <div class="priceAndNums">
             <p class="price">￥{{nowProduct.price}}</p>
@@ -84,8 +88,42 @@
           </div>
         </div>
         <div class="detailDetail">
-            <h3>物品详情</h3>
-            <div v-html="formatContent(nowProduct.content)"></div>
+          <h3>物品详情</h3>
+          <div v-html="nowProduct.content"></div>
+        </div>
+      </div>
+    </van-popup>
+
+    <van-popup
+      v-model="showYouhuiVisible"
+      closeable
+      position="bottom"
+      round
+      :style="{ height: '30%' }"
+    >
+      <div class="youhuiModal">
+        <h4>优惠活动</h4>
+        <div class="youhuiItem">
+          <van-tag type="warning" size="large">首单立减</van-tag>
+          <template v-for="item in youhui">
+            <van-tag
+              type="danger"
+              :key="JSON.stringify(item)"
+              plain
+              v-if="item.indexOf('首')>-1"
+            >{{item}}</van-tag>
+          </template>
+        </div>
+        <div class="youhuiItem">
+          <van-tag type="warning" size="large">满减优惠</van-tag>
+          <template v-for="item in youhui">
+            <van-tag
+              type="danger"
+              :key="JSON.stringify(item)"
+              plain
+              v-if="item.indexOf('满')>-1"
+            >{{item}}</van-tag>
+          </template>
         </div>
       </div>
     </van-popup>
@@ -110,11 +148,13 @@ export default {
     return {
       banner: [],
       category: [],
-      nowIndex: 0,
       nowName: "商品分类",
       nowProducts: [],
       showDetailVisible: false,
-      nowProduct: {}
+      nowProduct: {},
+      youhui: [],
+      showYouhuiVisible: false,
+      nowIndexb: 0
     };
   },
   created() {
@@ -125,7 +165,13 @@ export default {
     this.swiper.slideTo(3, 1000, false);
   },
   methods: {
-    ...mapMutations(["cartListSave", "cartNumsAdd", "cartNumsRed"]),
+    ...mapMutations([
+      "cartListSave",
+      "cartNumsAdd",
+      "cartNumsRed",
+      "sortConfigSave",
+      "nowIndexSave"
+    ]),
     getBanner() {
       this.$axios.get("/getBanner").then(res => {
         const { data } = res;
@@ -145,17 +191,33 @@ export default {
           item.text = item.name;
           item.value = index;
           item.pro.forEach(el => {
-            const has = cartList.find(ct => ct.id == el.id);
-            if (has) {
-              el.selNum = has.selNum;
-            } else {
-              el.selNum = 0;
-            }
+            el.content = this.formatContent(el.content);
+            el.selNum = 0;
           });
         });
+        //在购物车中循环查找category中的商品，如果找得到则赋予selNum，找不到就删除购物车中的商品
+        //同时还要检查购物车中的商品是否大于库存商品
+        cartList.forEach((ct, index) => {
+          let has = 0;
+          arr.forEach(item => {
+            const proHas = item.pro.findIndex(el => ct.id == el.id);
+            if (proHas >= 0) {
+              has = 1;
+              item.pro[proHas].selNum = ct.selNum;
+            }
+          });
+          //多次循环arr后，如果在商品列表找不到购物车中的商品，则移除该商品
+          if (!has) {
+            cartList.splice(index, 1);
+          }
+        });
+        this.nowIndexb = this.$store.state.nowIndex;
         this.category = arr;
-        this.nowProducts = arr[0].pro;
-        this.nowProduct = arr[0].pro[0];
+        this.nowProducts = arr[this.nowIndexb].pro;
+        this.nowProduct = arr[this.nowIndexb].pro[0];
+        //获取优惠
+        this.calcYouhui();
+        this.sortStart();
       });
     },
     getZhutu(item) {
@@ -198,32 +260,107 @@ export default {
       this.nowProduct = pro;
       this.showDetailVisible = true;
     },
-    formatContent(content){
-        //var mycontent = content.replace(/\<img/gi, '<img class="contentImg"');
-        if (content.indexOf(this.domain) < 0) {
-            content = content.replace(/\/Public/gi, this.domain + '/Public');
-        }
-        return content
+    formatContent(content) {
+      if (content.indexOf(this.domain) < 0) {
+        content = content.replace(/\/Public/gi, this.domain + "/Public");
+      }
+      return content;
     },
+    calcYouhui() {
+      const { setting } = this.$store.state;
+      let youhui = [];
+      const firstOrderSale = parseInt(setting.firstOrderSale);
+      if (firstOrderSale > 0) {
+        youhui.push(`首单减${firstOrderSale}`);
+      }
+      if (setting.countMoLing) {
+        const arr = setting.countMoLing.split(",");
+        arr.forEach(el => {
+          let xx = el.split("-");
+          youhui.push(`满${xx[0]}减${xx[1]}`);
+        });
+      }
+      this.youhui = youhui;
+    },
+    sort(index) {
+      let sortConfig = this.sortConfig;
+      if (sortConfig[index].active == false) {
+        sortConfig.forEach(it => {
+          it.active = false;
+        });
+        sortConfig[index].active = true;
+        this.sortConfigSave(sortConfig);
+        this.sortStart();
+      }
+    },
+    sortStart() {
+      const i = this.sortConfig.findIndex(item => item.active == true);
+      if (i === 0 || i === 1 || i === 2) {
+        switch (i) {
+          case 0:
+            this.nowProducts.sort(this.compare("price"));
+            break;
+          case 1:
+            this.nowProducts.sort(this.compare("sales"));
+            break;
+          case 2:
+            this.sortChinese();
+            break;
+        }
+      }
+    },
+    compare(property) {
+      return function(a, b) {
+        var value1 = a[property];
+        var value2 = b[property];
+        if (property == "price") return value1 - value2;
+        return value2 - value1;
+      };
+    },
+    sortChinese() {
+      const dataLeven = "name";
+      function getValue(option) {
+        // 参数： option 数组元素
+        if (!dataLeven) return option;
+        var data = option;
+        dataLeven.split(".").filter(function(item) {
+          data = data[item];
+        });
+        return data + "";
+      }
+      this.nowProducts.sort(function(item1, item2) {
+        return getValue(item1).localeCompare(getValue(item2), "zh-CN");
+      });
+    }
   },
   computed: {
-    ...mapState(["domain", "cartList", "cartNums"]),
+    ...mapState(["domain", "cartList", "cartNums", "sortConfig", "nowIndex"]),
     swiper() {
       return this.$refs.mySwiper.swiper;
     }
   },
   watch: {
-    nowIndex() {
-      this.nowName = this.category[this.nowIndex].name;
-      this.nowProducts = this.category[this.nowIndex].pro;
+    nowIndexb() {
+      this.nowIndexSave(this.nowIndexb);
+      this.nowName = this.category[this.nowIndexb].name;
+      this.nowProducts = this.category[this.nowIndexb].pro;
+      this.sortStart();
     }
   }
 };
 </script>
 
-<style lang="less" scope>
+<style lang="less" >
 @borderCorle: #efefef;
 @baseColor:#f69e2a;
+.clearfix:after {
+visibility: hidden;
+display: block;
+font-size: 0;
+content: " ";
+clear: both;
+height: 0;
+}
 .basecolor {color: @baseColor}
 .swiper-slide {
   img {
@@ -236,18 +373,26 @@ export default {
   border-top: 1px solid @borderCorle !important;
   border-bottom: 1px solid @borderCorle !important;
 }
+.youhui{
+  display: flex;
+  align-items: center;
+  span{
+    font-size: 11px;
+    margin: 0 3px
+  }
+}
 .van-dropdown-menu {
   height: 40px !important;
-  width: 23%;
+  width: 18%;
   border: none !important;
   border-right: 1px solid @borderCorle !important;
   padding-right: 10px;
 }
 .van-dropdown-menu__title {
-  font-size: 14px !important;
+  font-size: 12px !important;
 }
 .sortWrap {
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   span {
@@ -257,17 +402,19 @@ export default {
       position: relative;
     }
   }
+  span.active{
+    color: #f69e2a
+  }
 }
 .productList {
   background: #f1f2f3;
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
   padding: 2% 0;
   .productItem {
     width: 45.5%;
+    float: left;
+    margin-left: 3%;
     background-color: #fff;
-    margin-bottom: 2%;
+    margin-bottom: 2.5%;
     padding-bottom: 1.5%;
   }
   &:after {
@@ -329,7 +476,7 @@ export default {
     }
 }
 .detailModal{
-    margin: 50px 0 20px 0;
+    margin-top: 50px;
 }
 .detailDetail{
     border-top: 10px solid #eee;
@@ -337,5 +484,17 @@ export default {
     img{
         max-width: 100%;
     }
+}
+.youhuiModal{
+  margin: 30px 0 20px 0;
+  h4{
+    text-align: center
+  }
+  .youhuiItem{
+    margin: 10px 20px;
+    span{
+      margin-right: 10px
+    }
+  }
 }
 </style>

@@ -1,12 +1,14 @@
 <template>
-  <div style="padding-bottom:50px">
-    <router-view></router-view>
+  <div style="padding-bottom:50px;">
+    <transition name="fade" mode="out-in">
+      <router-view></router-view>
+    </transition>
     <van-tabbar v-model="activeFooter" active-color="#ff9813">
       <!-- <van-tabbar-item  v-for="(item,index) in footer" :key="item.icon" replace :to="item.to" :info="index == 2 ? cartNums : false">
         <span>{{item.name}}</span>
         <img slot="icon" :src="item.icon" />
-      </van-tabbar-item> -->
-      <van-tabbar-item  v-for="item in footer" :key="item.icon" replace :to="item.to" >
+      </van-tabbar-item>-->
+      <van-tabbar-item v-for="item in footer" :key="item.icon" replace :to="item.to">
         <span>{{item.name}}</span>
         <img slot="icon" :src="item.icon" />
       </van-tabbar-item>
@@ -25,27 +27,27 @@ export default {
       footer: [
         {
           icon: require("../..//public/images/md2-ft-1.png"),
-          name: "主页",
-          to:'/'
+          name: "首页",
+          to: "/"
         },
         {
           icon: require("../..//public/images/md2-ft-2.png"),
           name: "搜索",
-          to:'/search'
+          to: "/search"
         },
         {
           icon: require("../..//public/images/md2-ft-3.png"),
           name: "购物车",
-          to:'cartlist'
+          to: "cartlist"
         },
         {
           icon: require("../..//public/images/md2-ft-4.png"),
           name: "我的",
-          to:'/user'
+          to: "/user"
         }
       ],
-      activeFooter:0,
-      nums:0
+      activeFooter: 0,
+      nums: 0
     };
   },
   created() {
@@ -57,17 +59,18 @@ export default {
   },
   mounted() {
     const nowPath = this.$route.path;
-    switch(nowPath){
-      case '/home':
+    console.log(nowPath);
+    switch (nowPath) {
+      case "/home":
         this.activeFooter = 0;
         break;
-      case '/serach':
+      case "/serach":
         this.activeFooter = 1;
         break;
-      case '/cartlist':
+      case "/cartlist":
         this.activeFooter = 2;
         break;
-      case '/user':
+      case "/user":
         this.activeFooter = 3;
         break;
     }
@@ -78,13 +81,15 @@ export default {
     getSetting() {
       this.$axios.get("/getSetting").then(res => {
         const { data } = res;
+        if (data.arr.open != "1") {
+          this.$router.push("/close");
+        }
         this.settingSave(data.arr);
       });
-    },
-
+    }
   },
   computed: {
-    ...mapState(["setting","cartList","cartNums"])
+    ...mapState(["setting", "cartList", "cartNums"])
   },
   watch: {
     $route: {
@@ -97,7 +102,7 @@ export default {
 };
 </script>
 
-<style>
+<style lang="less">
 body {
   margin: 0;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
@@ -120,11 +125,31 @@ a {
 p {
   margin: 0;
 }
-.van-nav-bar__title.van-ellipsis{
-  font-size: 14px
+.van-nav-bar__title.van-ellipsis {
+  font-size: 14px;
 }
-.van-icon-arrow-left::before{
-  color: #323233
+.van-icon-arrow-left::before {
+  color: #323233;
 }
-
+.noCartListDiv {
+  text-align: center;
+  padding-top: 50px;
+  font-size: 14px;
+  color: #999;
+  .iconfont {
+    font-size: 30px;
+  }
+  p {
+    margin-top: 10px;
+  }
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+.van-divider{
+  margin: 0 !important
+}
 </style>

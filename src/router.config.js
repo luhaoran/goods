@@ -4,7 +4,10 @@ import Login from './components/Login'
 import Home from './components/Home'
 import Cartlist from './components/Cartlist'
 import Search from './components/Search'
-import Detail from './components/Detail'
+import Close from './components/Close'
+import Addorder from './components/Addorder'
+import Selectaddress from './components/Selectaddress'
+import Addaddress from './components/Addaddress'
 
 Vue.use(vueRouter);
 
@@ -32,8 +35,20 @@ const router = new vueRouter({
       component:Search
     },
     {
-      path:'/detail',
-      component:Detail
+      path:'/close',
+      component:Close
+    },
+    {
+      path:'/addorder',
+      component:Addorder
+    },
+    {
+      path:'/selectaddress',
+      component:Selectaddress
+    },
+    {
+      path:'/addaddress',
+      component:Addaddress
     }
   ]             
 })

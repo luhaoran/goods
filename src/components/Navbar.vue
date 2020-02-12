@@ -9,6 +9,28 @@ export default {
   },
   data() {
     return {
+      footer: [
+        {
+          icon: require("../..//public/images/md2-ft-1.png"),
+          name: "首页",
+          to:'/'
+        },
+        {
+          icon: require("../..//public/images/md2-ft-2.png"),
+          name: "搜索",
+          to:'/search'
+        },
+        {
+          icon: require("../..//public/images/md2-ft-3.png"),
+          name: "购物车",
+          to:'cartlist'
+        },
+        {
+          icon: require("../..//public/images/md2-ft-4.png"),
+          name: "我的",
+          to:'/user'
+        }
+      ],
     };
   },
   methods: {
@@ -19,8 +41,13 @@ export default {
   },
   computed:{
       isHome(){
-          if(this.name === '首页') return false;
-          return true
+        let is = true
+        this.footer.forEach(el => {
+          if(this.name === el.name){
+            is =  false;
+          }
+        });
+        return is   
       }
   }
 };
