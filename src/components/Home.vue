@@ -167,8 +167,6 @@ export default {
   methods: {
     ...mapMutations([
       "cartListSave",
-      "cartNumsAdd",
-      "cartNumsRed",
       "sortConfigSave",
       "nowIndexSave"
     ]),
@@ -196,14 +194,18 @@ export default {
           });
         });
         //在购物车中循环查找category中的商品，如果找得到则赋予selNum，找不到就删除购物车中的商品
-        //同时还要检查购物车中的商品是否大于库存商品
         cartList.forEach((ct, index) => {
-          let has = 0;
+          let has = false;
           arr.forEach(item => {
             const proHas = item.pro.findIndex(el => ct.id == el.id);
             if (proHas >= 0) {
-              has = 1;
-              item.pro[proHas].selNum = ct.selNum;
+              has = true;
+              //检查购物车中的商品是否大于库存商品
+              if(ct.selNum > item.pro[proHas].num){
+                item.pro[proHas].selNum = item.pro[proHas].num
+              }else{
+                item.pro[proHas].selNum = ct.selNum;
+              }
             }
           });
           //多次循环arr后，如果在商品列表找不到购物车中的商品，则移除该商品
@@ -211,6 +213,7 @@ export default {
             cartList.splice(index, 1);
           }
         });
+        this.cartListSave(cartList)
         this.nowIndexb = this.$store.state.nowIndex;
         this.category = arr;
         this.nowProducts = arr[this.nowIndexb].pro;
@@ -226,7 +229,12 @@ export default {
       return this.domain + pic;
     },
     numAdd(item) {
-      item.selNum += 1;
+      if(item.selNum < item.num){
+        item.selNum += 1;
+      }else{
+        return Notify({ type: "warning", message: "购物量超过商品库存!" });
+      }
+      
       let cartList = this.cartList;
       const has = cartList.findIndex(el => el.id == item.id);
       if (has >= 0) {
@@ -234,7 +242,6 @@ export default {
       } else {
         cartList.push(item);
       }
-      this.cartNumsAdd();
       let category = this.category;
       category[this.nowIndex].pro = this.nowProducts;
       this.category = category;
@@ -246,7 +253,6 @@ export default {
       if (item.selNum > 0) {
         item.selNum -= 1;
         cartList.splice(has, 1, item);
-        this.cartNumsRed();
       }
       if (item.selNum === 0) cartList.splice(has, 1);
       let category = this.category;
@@ -440,6 +446,7 @@ height: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    height: 15px;
     }
     .price {
     font-size: 16px;

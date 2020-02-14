@@ -1,30 +1,24 @@
 <template>
-  <div>
-      123
-  </div>
+  <div>123</div>
 </template>
 
 <script>
-
 export default {
   name: "Login",
   components: {},
   data() {
-    return {
-      
-
-    };
+    return {};
   },
-  created(){
-    
-  },
+  created() {},
   mounted() {
     // const {setting} = this.$store.state
+    this.login();
   },
-  methods:{
-
-  },
-  
+  methods: {
+    login() {
+      
+    }
+  }
 };
 </script>
 

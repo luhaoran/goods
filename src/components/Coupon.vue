@@ -1,7 +1,7 @@
 <template>
   <div class="userWrap">
     <div class="bg"></div>
-    <Navbar name="订单详情" />
+    <Navbar name="券包" />
   </div>
 </template>
 
@@ -9,7 +9,7 @@
 import { mapState } from "vuex";
 import Navbar from "./Navbar";
 export default {
-  name: "Eachorder",
+  name: "Coupon",
   components: {
     Navbar
   },

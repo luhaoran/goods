@@ -6,6 +6,7 @@
         <div class="address" v-if="address && address.name">
           <p>{{address.name}} {{address.tel}}</p>
           <p class="xxdz">{{address.address}}</p>
+          <van-button plain  color="#f69e2a" @click="$router.push('/selectaddress')" size="mini">重新选择</van-button>
         </div>
         <van-button
           class="selectAddressBtn"
@@ -24,13 +25,24 @@
             v-for="item in cartList"
             :key="JSON.stringify(item)"
             :num="item.selNum"
-            :price="item.price"
+            :price="item.countPrice"
             :desc="item.info"
             :title="item.name"
             :thumb="getZhutu(item)"
-          ></van-card>
+          >
+            <div slot="tags">
+              <van-tag plain type="primary">单价：￥{{item.price}}</van-tag>
+            </div>
+          </van-card>
         </div>
         <van-divider />
+        <van-panel v-if="setting.outsidePrice" title="运费" :status="`+${setting.outsidePrice}元`" />
+        <van-panel
+          v-if="setting.firstOrderSale"
+          title="立减"
+          :status="`-${setting.firstOrderSale}元`"
+        />
+        <van-panel v-if="countMoLing.man" title="满减" :status="`-${countMoLing.jian}.00元`" />
         <van-coupon-cell
           title="商家代金券"
           :coupons="coupons"
@@ -41,7 +53,12 @@
         <van-panel title="配送时间" :status="setting.outsideStartTime + '-' + setting.outsideEndTime" />
         <van-panel title="订单备注" status="填写备注 >" @click="remarkVisible = true" />
       </div>
-      <van-submit-bar :price="totalPrice" button-text="支付" @submit="addOrder" />
+      <van-submit-bar
+        :loading="priceLoading"
+        :price="orderPrice*100"
+        button-text="支付"
+        @submit="addOrder"
+      />
     </div>
     <van-popup v-model="showList" round position="bottom" style="height: 90%; padding-top: 4px;">
       <van-coupon-list
@@ -54,16 +71,23 @@
     <van-popup v-model="remarkVisible" round position="bottom" closeable :style="{ height: '36%' }">
       <div class="remarkPop">
         <van-field
-        v-model="remark"
-        rows="3"
-        autosize
-        type="textarea"
-        maxlength="50"
-        placeholder="请输入留言"
-        show-word-limit
-        clearable
-      />
-        <van-button color="#f69e2a" style="margin-top:10px" @click="remarkVisible=false" round block size="small">确定</van-button>
+          v-model="remark"
+          rows="3"
+          autosize
+          type="textarea"
+          maxlength="50"
+          placeholder="请输入备注"
+          show-word-limit
+          clearable
+        />
+        <van-button
+          color="#f69e2a"
+          style="margin-top:10px"
+          @click="remarkVisible=false"
+          round
+          block
+          size="small"
+        >确定</van-button>
       </div>
     </van-popup>
   </div>
@@ -98,13 +122,18 @@ export default {
       showList: false,
       remark: "",
       remarkVisible: false,
-      totalPrice:0.00
+      orderPrice: 0,
+      priceLoading: true,
+      countMoLing: { man: 0, jian: 0 },
+      selCouponId:0
     };
   },
   created() {},
   mounted() {
     this.getAddressList();
-    this.calcTotalPrice();
+    setTimeout(() => {
+      this.calcOrderPrice();
+    }, 1000);
   },
 
   methods: {
@@ -119,22 +148,65 @@ export default {
       this.showList = false;
       this.chosenCoupon = index;
     },
-    calcTotalPrice() {
-      const cartList = this.cartList;
-      let totalPrice = 0;
-      cartList.forEach(el => {
-        let total = parseFloat(el.price) * el.selNum;
-        totalPrice += total;
-        console.log(total, totalPrice);
-      });
-      this.totalPrice = totalPrice * 100;
+    calcOrderPrice() {
+      const setting = this.$store.state.setting;
+      let orderPrice = this.totalPrice;
+
+      //运费
+      orderPrice =
+        setting.outsidePrice > 0 &&
+        orderPrice + parseFloat(setting.outsidePrice);
+      console.log(orderPrice);
+
+      //首单立减
+      orderPrice =
+        setting.firstOrderSale > 0 &&
+        orderPrice - parseFloat(setting.firstOrderSale);
+      //满减
+      if (setting.countMoLing) {
+        const countMoLing1 = setting.countMoLing.split(",");
+        let countMoLing = countMoLing1.map(el => {
+          const man = el.split("-")[0];
+          const jian = el.split("-")[1];
+          return { man, jian };
+        });
+        countMoLing.sort((a, b) => {
+          return b.man - a.man;
+        });
+        countMoLing = countMoLing[0];
+        this.countMoLing = countMoLing;
+        orderPrice -= parseInt(countMoLing.jian);
+      }
+
+      //计算优惠券
+      this.orderPrice = orderPrice;
+      this.priceLoading = false;
     },
-    addOrder(){
-      Notify({ type: 'warning', message: '支付中，请稍后...' });
+    addOrder() {
+      if (!this.address.name)
+        return Notify({ type: "warning", message: "请选择地址" });
+
+      const order = {
+        cartList: this.cartList,
+        orderPrice: this.orderPrice,
+        cartPrice: this.totalPrice,
+        address: this.address,
+        selCouponId: this.selCouponId,
+        noteValue: this.remark
+      };
+      console.log(order)
+      return Notify({ type: "success", message: "订单提交中，请稍后" });
     }
   },
   computed: {
-    ...mapState(["setting", "cartList", "cartNums", "domain", "address"])
+    ...mapState([
+      "setting",
+      "cartList",
+      "cartNums",
+      "domain",
+      "address",
+      "totalPrice"
+    ])
   },
   watch: {}
 };
@@ -176,11 +248,11 @@ export default {
     padding: 0 12px;
   }
 }
-.remarkPop{
+.remarkPop {
   margin: 50px 20px 30px 20px;
-  .van-field{
+  .van-field {
     border: 1px solid #eeeeee;
-    border-radius: 5px
+    border-radius: 5px;
   }
 }
 .van-submit-bar {

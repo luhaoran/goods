@@ -4,14 +4,14 @@
       <router-view></router-view>
     </transition>
     <van-tabbar v-model="activeFooter" active-color="#ff9813">
-      <!-- <van-tabbar-item  v-for="(item,index) in footer" :key="item.icon" replace :to="item.to" :info="index == 2 ? cartNums : false">
-        <span>{{item.name}}</span>
-        <img slot="icon" :src="item.icon" />
-      </van-tabbar-item>-->
-      <van-tabbar-item v-for="item in footer" :key="item.icon" replace :to="item.to">
+      <van-tabbar-item  v-for="(item,index) in footer" :key="item.icon" replace :to="item.to" :info="index == 2 ? cartNums : false">
         <span>{{item.name}}</span>
         <img slot="icon" :src="item.icon" />
       </van-tabbar-item>
+      <!-- <van-tabbar-item v-for="item in footer" :key="item.icon" replace :to="item.to">
+        <span>{{item.name}}</span>
+        <img slot="icon" :src="item.icon" />
+      </van-tabbar-item> -->
     </van-tabbar>
   </div>
 </template>
@@ -38,7 +38,7 @@ export default {
         {
           icon: require("../..//public/images/md2-ft-3.png"),
           name: "购物车",
-          to: "cartlist"
+          to: "/cartlist"
         },
         {
           icon: require("../..//public/images/md2-ft-4.png"),
@@ -74,10 +74,11 @@ export default {
         this.activeFooter = 3;
         break;
     }
+    this.calcCartListNum()
   },
 
   methods: {
-    ...mapMutations(["settingSave"]),
+    ...mapMutations(["settingSave","cartNumsSave","totalPriceSave"]),
     getSetting() {
       this.$axios.get("/getSetting").then(res => {
         const { data } = res;
@@ -86,6 +87,18 @@ export default {
         }
         this.settingSave(data.arr);
       });
+    },
+    calcCartListNum(){
+      let cartNums = 0
+      let totalPrice = 0.00
+      this.cartList.forEach(el => {
+        cartNums += el.selNum
+        totalPrice += el.selNum * parseFloat(el.price)
+      });
+      console.log(totalPrice)
+      this.cartNumsSave(cartNums)
+      this.totalPriceSave(totalPrice)
+      
     }
   },
   computed: {

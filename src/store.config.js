@@ -12,6 +12,7 @@ const store = new Vuex.Store({
         request: '',
         cartList: JSON.parse(localStorage.getItem('cartList')) || [],
         cartNums: 0,
+        totalPrice:0.00,
         sortConfig: [
             {
                 name: "价格",
@@ -29,12 +30,13 @@ const store = new Vuex.Store({
                 icon: "arrow-down"
             }
         ],
-        nowIndex:0,
-        user:{
-            id:'536',
-            code:'e2ed2e34332c39483cba6b42d496605bd7bdc8e5'
+        nowIndex: 0,
+        user: {
+            id: '536',
+            code: 'e2ed2e34332c39483cba6b42d496605bd7bdc8e5'
         },
-        address:{}
+        address: {},
+        editAddress:{}
     },
     mutations: {
         userInfoSave(state, value) {
@@ -44,25 +46,38 @@ const store = new Vuex.Store({
             state.setting = value
         },
         cartListSave(state, value) {
-            state.cartList = value
-            localStorage.setItem('cartList',JSON.stringify(value))
+            state.cartList = value;
+            let cartNums = 0;
+            let totalPrice = 0.00
+            value.forEach(el => {
+                cartNums += el.selNum
+                totalPrice += el.selNum * parseFloat(el.price)
+                let countPrice = el.selNum * parseFloat(el.price);
+                el.countPrice = countPrice.toFixed(2)
+            })
+            state.cartNums = cartNums;
+            state.totalPrice = totalPrice;
+            localStorage.setItem('cartList', JSON.stringify(value))
         },
-        cartNumsAdd(state) {
-            state.cartNums += 1
+        cartNumsSave(state, value) {
+            state.cartNums = value
         },
-        cartNumsRed(state) {
-            state.cartNums -= 1
+        totalPriceSave(state, value) {
+            state.totalPrice = value
         },
-        sortConfigSave(state,value) {
+        sortConfigSave(state, value) {
             state.sortConfig = value
         },
-        nowIndexSave(state,value) {
+        nowIndexSave(state, value) {
             state.nowIndex = value
         },
-        addressSave(state,value) {
+        addressSave(state, value) {
             state.address = value
+        },
+        editAddressSave(state, value) {
+            state.editAddress = value
         }
-    }
+    },
 })
 
 export default store

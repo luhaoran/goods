@@ -21,7 +21,7 @@
       <i class="iconfont icon-cart"></i>
       <p>这里空空如也</p>
     </div>
-    <van-submit-bar :price="totalPrice" button-text="提交订单" @submit="onSubmit" />
+    <van-submit-bar :price="totalPrice*100" button-text="提交订单" @submit="onSubmit" />
   </div>
 </template>
 
@@ -35,19 +35,13 @@ export default {
     Navbar
   },
   data() {
-    return {
-      totalPrice: 0.0
-    };
+    return {};
   },
   created() {},
-  mounted() {
-    //   const { cartList } = this.$store.state;
-    //   console.log(cartList)
-    this.calcTotalPrice();
-  },
+  mounted() {},
 
   methods: {
-    ...mapMutations(["cartListSave", "cartNumsAdd", "cartNumsRed"]),
+    ...mapMutations(["cartListSave"]),
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
       const pic = item.zhutu.split(",");
@@ -55,29 +49,17 @@ export default {
     },
     numAdd(item) {
       item.selNum += 1;
-      this.cartNumsAdd();
-      this.calcTotalPrice();
+      this.cartListSave(this.cartList);
     },
     numRed(item) {
       item.selNum -= 1;
-      this.cartNumsRed();
-      this.calcTotalPrice();
       if (item.selNum === 0) {
         let cartList = this.cartList;
         const has = cartList.findIndex(el => el.id == item.id);
         cartList.splice(has, 1);
         this.cartListSave(cartList);
       }
-    },
-    calcTotalPrice() {
-      const cartList = this.cartList;
-      let totalPrice = 0;
-      cartList.forEach(el => {
-        let total = parseFloat(el.price) * el.selNum;
-        totalPrice += total;
-        console.log(total, totalPrice);
-      });
-      this.totalPrice = totalPrice * 100;
+      this.cartListSave(this.cartList);
     },
     gotoHome() {
       this.$router.push("/home");
@@ -86,7 +68,7 @@ export default {
       if (this.cartList.length == 0) {
         return Notify({ type: "danger", message: "请先添加商品！" });
       }
-      const totalPrice = this.totalPrice / 100;
+      const totalPrice = this.totalPrice;
       if (totalPrice < this.setting.outsidePrice) {
         return Notify({
           type: "warning",
@@ -94,11 +76,11 @@ export default {
         });
       }
 
-      this.$router.push('/addorder')
+      this.$router.push("/addorder");
     }
   },
   computed: {
-    ...mapState(["domain", "cartList", "setting"])
+    ...mapState(["domain", "cartList", "setting", "totalPrice"])
   }
 };
 </script>
@@ -110,5 +92,4 @@ export default {
 .van-submit-bar {
   bottom: 50px !important;
 }
-
 </style>
