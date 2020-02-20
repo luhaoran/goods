@@ -99,7 +99,7 @@ export default {
     },
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
-      const pic = item.zhutu.split(",");
+      const pic = item.pic.split(",");
       return this.domain + pic;
     },
     copyaa() {

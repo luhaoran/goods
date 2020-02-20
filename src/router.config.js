@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import vueRouter from 'vue-router';
-import Login from './components/Login'
 import Home from './components/Home'
 import Cartlist from './components/Cartlist'
 import Search from './components/Search'
@@ -16,6 +15,10 @@ import Orderscore from './components/Orderscore'
 import Count from './components/Count'
 import Coupon from './components/Coupon'
 import Feedback from './components/Feedback'
+import Article from './components/Article'
+import Return from './components/Return'
+import Userreg from './components/Userreg'
+import Userlogin from './components/Userlogin'
 
 Vue.use(vueRouter);
 
@@ -29,10 +32,6 @@ const router = new vueRouter({
     {
       path: '/home',
       component: Home
-    },
-    {
-      path: '/login',
-      component: Login
     },
     {
       path: '/cartlist',
@@ -89,6 +88,22 @@ const router = new vueRouter({
     {
       path: '/feedback',
       component: Feedback
+    },
+    {
+      path: '/article',
+      component: Article
+    },
+    {
+      path: '/return',
+      component: Return
+    },
+    {
+      path: '/userreg',
+      component: Userreg
+    },
+    {
+      path: '/userlogin',
+      component: Userlogin
     }
   ]
 })
@@ -96,17 +111,11 @@ const router = new vueRouter({
 
 router.beforeEach((to,from,next)=>{
   const user = localStorage.getItem("user")
-  // if(to.path == '/login' && user){
-  //   return next("/home");
-  // }else if(to.path == '/login'){
-  //   return next();
-  // }
+  const userInfo = localStorage.getItem("userInfo")
 
-  //如果要前往user页面，且缓存中user为空，则跳转到登陆页面
-  if(to.path == '/user' && !user){
-    // http://yvc7nc.natappfree.cc/
-    // return window.location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx32b7a6d9cf485cb8&redirect_uri=http://yvc7nc.natappfree.cc/login&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect'
-    next()
+  //如果前往用户中心或者下单页面，检查是否登陆，未登录跳转至登陆页面
+  if((to.path == '/user' || to.path == '/addorder') && !user && !userInfo){
+    return next("/userlogin");
   }
 
   next()

@@ -28,20 +28,7 @@ export default {
       searchValue: "",
       chosenAddressId: 0,
       showLoading: true,
-      addressList: [
-        {
-          id: "1",
-          name: "张三",
-          tel: "13000000000",
-          address: "浙江省杭州市西湖区文三路 138 号东方通信大厦 7 楼 501 室",
-          provinceName: "浙江省",
-          cityName: "杭州市",
-          countyName: "西湖区",
-          detailInfo: "东方通信大厦 7 楼 501 室",
-          userName: "张三",
-          telNumber: "13000000000"
-        }
-      ]
+      addressList: []
     };
   },
   created() {},
@@ -55,7 +42,7 @@ export default {
       const user = this.user;
       this.$axios.get("/userAddressList", { params: { user } }).then(res => {
         const { data } = res;
-        if (data.status === 1) {
+        if (data.status === 1 && data.arr && data.arr.length > 0) {
           let addressList = data.arr;
           addressList.forEach(el => {
             el.name = el.userName;
@@ -65,7 +52,6 @@ export default {
           });
           this.addressList = addressList;
         }
-
         this.showLoading = false;
       });
     },

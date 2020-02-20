@@ -13,7 +13,7 @@ Vue.prototype.$wx = Wx
 Vue.prototype.$axios = axios
 // axios.defaults.baseURL = "https://api.luhaoran.cn"
 axios.defaults.baseURL = "https://good.pinge.pro/10005"
-axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
+axios.defaults.headers.post['Content-Type'] = 'text/plain'
 
 //axios传输数据时，在headers中添加Authorization
 // axios.interceptors.request.use(config => {

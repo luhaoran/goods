@@ -1,59 +1,142 @@
 <template>
-  <div>
+  <div style="height:100%">
     <Navbar name="首页" />
-    <swiper ref="mySwiper" style="height: auto">
+    <van-notice-bar
+      v-if="showNotice"
+      :text="notice.content"
+      left-icon="volume-o"
+      mode="link"
+      @click="gotoArticle(notice.id)"
+    />
+    <swiper ref="mySwiper" style="height: 120px">
       <!-- slides -->
       <swiper-slide v-for="item in banner" :key="item.pic">
-        <img :src="domain + item.pic" alt />
+        <van-image width="100%" height="120px" :src="domain + item.pic" fit="cover" />
       </swiper-slide>
     </swiper>
-    <div class="switchItem">
-      <van-dropdown-menu>
-        <van-dropdown-item v-model="nowIndexb" :options="category" :title="nowName" />
-      </van-dropdown-menu>
-      <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
-        <van-tag plain type="warning">{{youhui[0]}}</van-tag>
-        <van-tag plain type="warning">更多优惠</van-tag>
-      </div>
-      <div class="sortWrap">
-        <span
-          v-for="(item,index) in sortConfig"
-          :key="JSON.stringify(item)"
-          :class="[item.active&&'active']"
-          @click="sort(index)"
-        >
-          {{item.name}}
-          <van-icon :name="item.icon" />
-        </span>
-      </div>
-    </div>
-    <div class="productList clearfix">
-      <div class="productItem" v-for="item in nowProducts" :key="JSON.stringify(item)">
-        <van-image
-          @click="showDetail(item)"
-          width="100%"
-          height="190"
-          fit="contain"
-          :src="getZhutu(item)"
-        />
-        <div class="text">
-          <p class="title">{{item.name}} {{item.unit}}</p>
-          <p class="note">{{item.info}}</p>
-          <div class="priceAndNums">
-            <p class="price">￥{{item.price}}</p>
-            <div class="numbers" v-if="item.num > 0">
-              <template v-if="item.selNum > 0">
-                <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(item)"></i>
-                <span>{{item.selNum}}</span>
-              </template>
-              <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(item)"></i>
+    <template v-if="setting.modeType == 2">
+      <van-sticky>
+        <div class="switchItem">
+          <van-dropdown-menu>
+            <van-dropdown-item v-model="nowIndexb" :options="category" :title="nowName" />
+          </van-dropdown-menu>
+          <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
+            <van-tag plain type="warning">{{youhui[0]}}</van-tag>
+            <van-tag plain type="warning">更多优惠</van-tag>
+          </div>
+          <div class="sortWrap">
+            <span
+              v-for="(item,index) in sortConfig"
+              :key="JSON.stringify(item)"
+              :class="[item.active&&'active']"
+              @click="sort(index)"
+            >
+              {{item.name}}
+              <van-icon :name="item.icon" />
+            </span>
+          </div>
+        </div>
+      </van-sticky>
+      <div class="productList clearfix">
+        <div class="productItem" v-for="item in nowProducts" :key="JSON.stringify(item)">
+          <van-image
+            @click="showDetail(item)"
+            width="100%"
+            height="180"
+            fit="cover"
+            :src="getZhutu(item)"
+          />
+          <div class="text">
+            <p class="title">
+              {{item.name}}
+              {{item.unit}}
+            </p>
+            <p class="note" v-if="item.info">{{item.info}}</p>
+            <p class="note" v-else>{{item.name + item.unit}}</p>
+
+            <div class="priceAndNums">
+              <p class="price">￥{{item.price}}</p>
+              <div class="numbers" v-if="item.num > 0">
+                <template v-if="item.selNum > 0">
+                  <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(item)"></i>
+                  <span>{{item.selNum}}</span>
+                </template>
+                <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(item)"></i>
+              </div>
+              <van-tag v-else>已售罄</van-tag>
             </div>
-            <van-tag v-else>已售罄</van-tag>
           </div>
         </div>
       </div>
-    </div>
+    </template>
+    <template v-if="setting.modeType == 1">
+      <div class="modeType1">
+        <van-sidebar v-model="nowIndexb" class="sidebar">
+          <van-sidebar-item
+            :title="item.name"
+            v-for="item in category"
+            :key="JSON.stringify(item)"
+          />
+        </van-sidebar>
+        <div class="modeType1-right">
+          <div class="switchItem">
+            <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
+              <van-tag plain type="warning">{{youhui[0]}}</van-tag>
+              <van-tag plain type="warning">更多优惠</van-tag>
+            </div>
+            <div class="sortWrap">
+              <span
+                v-for="(item,index) in sortConfig"
+                :key="JSON.stringify(item)"
+                :class="[item.active&&'active']"
+                @click="sort(index)"
+              >
+                {{item.name}}
+                <van-icon :name="item.icon" />
+              </span>
+            </div>
+          </div>
+          <div class="productList" ref="productList">
+            <template v-for="(item,index) in nowProducts">
+              <div
+                class="productItem clearfix"
+                :key="JSON.stringify(item)"
+              >
+                <van-image
+                  @click="showDetail(item)"
+                  width="75"
+                  height="75"
+                  fit="cover"
+                  :src="getZhutu(item)"
+                  class="image"
+                />
+                <div class="text">
+                  <p class="title">
+                    {{item.name}}
+                    {{item.unit}}
+                  </p>
+                  <p class="note" v-if="item.info">{{item.info}}</p>
+                  <p class="note" v-else>{{item.name + item.unit}}</p>
 
+                  <div class="priceAndNums">
+                    <p class="price">￥{{item.price}}</p>
+                    <div class="numbers" v-if="item.num > 0">
+                      <template v-if="item.selNum > 0">
+                        <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(item)"></i>
+                        <span>{{item.selNum}}</span>
+                      </template>
+                      <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(item)"></i>
+                    </div>
+                    <van-tag v-else>已售罄</van-tag>
+                  </div>
+                </div>
+              </div>
+              <van-divider v-if="index < nowProducts.length - 1" :key="JSON.stringify(item)" />
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
     <van-popup
       v-model="showDetailVisible"
       round
@@ -63,10 +146,10 @@
       close-icon-position="top-left"
     >
       <div class="detailModal">
-        <swiper ref="mySwiper" style="height: 350px">
+        <swiper ref="mySwiper" style="height: 220px">
           <!-- slides -->
           <swiper-slide v-for="item in nowProduct.pics" :key="item">
-            <van-image width="100%" height="100%" fit="contain" :src="domain + item" />
+            <van-image width="100%" height="100%" fit="cover" :src="domain + item" />
           </swiper-slide>
         </swiper>
         <div class="text detailText">
@@ -74,7 +157,7 @@
             <span>{{nowProduct.name}}</span>
             {{nowProduct.unit}}
           </p>
-          <p class="note">{{nowProduct.info}}</p>
+          <p class="note" v-if="nowProduct.info">{{nowProduct.info}}</p>
           <div class="priceAndNums">
             <p class="price">￥{{nowProduct.price}}</p>
             <div class="numbers" v-if="nowProduct.num > 0">
@@ -154,29 +237,38 @@ export default {
       nowProduct: {},
       youhui: [],
       showYouhuiVisible: false,
-      nowIndexb: 0
+      nowIndexb: 0,
+      notice: {},
+      showNotice: false
     };
   },
   created() {
     this.getBanner();
     this.getCategory();
+    this.getNotice();
   },
   mounted() {
     this.swiper.slideTo(3, 1000, false);
   },
   methods: {
-    ...mapMutations([
-      "cartListSave",
-      "sortConfigSave",
-      "nowIndexSave"
-    ]),
+    ...mapMutations(["cartListSave", "sortConfigSave", "nowIndexSave"]),
     getBanner() {
       this.$axios.get("/getBanner").then(res => {
         const { data } = res;
-        if (data.status !== 1)
-          return Notify({ type: "danger", message: "banner获取失败!" });
-        this.banner = data.arr;
+        if (data.status === 1) this.banner = data.arr;
       });
+    },
+    getNotice() {
+      this.$axios.get("/getNotice").then(res => {
+        const { data } = res;
+        if (data.status === 1) {
+          this.notice = data.data;
+          this.showNotice = true;
+        } 
+      });
+    },
+    gotoArticle(id) {
+      this.$router.push(`/article?id=${id}`);
     },
     getCategory() {
       const { cartList } = this.$store.state;
@@ -189,7 +281,7 @@ export default {
           item.text = item.name;
           item.value = index;
           item.pro.forEach(el => {
-            el.content = this.formatContent(el.content);
+            if (el.content) el.content = this.formatContent(el.content);
             el.selNum = 0;
           });
         });
@@ -201,19 +293,20 @@ export default {
             if (proHas >= 0) {
               has = true;
               //检查购物车中的商品是否大于库存商品
-              if(ct.selNum > item.pro[proHas].num){
-                item.pro[proHas].selNum = item.pro[proHas].num
-              }else{
+              if (ct.selNum > item.pro[proHas].num) {
+                item.pro[proHas].selNum = item.pro[proHas].num;
+              } else {
                 item.pro[proHas].selNum = ct.selNum;
               }
             }
           });
           //多次循环arr后，如果在商品列表找不到购物车中的商品，则移除该商品
           if (!has) {
-            cartList.splice(index, 1);
+            cartList.splice(index, 1, {});
           }
         });
-        this.cartListSave(cartList)
+        const cartLists = cartList.filter(item => item.id);
+        this.cartListSave(cartLists);
         this.nowIndexb = this.$store.state.nowIndex;
         this.category = arr;
         this.nowProducts = arr[this.nowIndexb].pro;
@@ -225,16 +318,16 @@ export default {
     },
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
-      const pic = item.zhutu.split(",");
+      const pic = item.pic.split(",");
       return this.domain + pic;
     },
     numAdd(item) {
-      if(item.selNum < item.num){
+      if (item.selNum < item.num) {
         item.selNum += 1;
-      }else{
+      } else {
         return Notify({ type: "warning", message: "购物量超过商品库存!" });
       }
-      
+
       let cartList = this.cartList;
       const has = cartList.findIndex(el => el.id == item.id);
       if (has >= 0) {
@@ -340,7 +433,14 @@ export default {
     }
   },
   computed: {
-    ...mapState(["domain", "cartList", "cartNums", "sortConfig", "nowIndex"]),
+    ...mapState([
+      "domain",
+      "cartList",
+      "cartNums",
+      "sortConfig",
+      "nowIndex",
+      "setting"
+    ]),
     swiper() {
       return this.$refs.mySwiper.swiper;
     }
@@ -350,6 +450,7 @@ export default {
       this.nowIndexSave(this.nowIndexb);
       this.nowName = this.category[this.nowIndexb].name;
       this.nowProducts = this.category[this.nowIndexb].pro;
+      window.scrollTo(0, 0);
       this.sortStart();
     }
   }
@@ -378,6 +479,7 @@ height: 0;
   justify-content: space-between;
   border-top: 1px solid @borderCorle !important;
   border-bottom: 1px solid @borderCorle !important;
+  background: #fff
 }
 .youhui{
   display: flex;
@@ -438,6 +540,7 @@ height: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    margin: 0;
     }
     .note {
     font-size: 11px;
@@ -503,5 +606,66 @@ height: 0;
       margin-right: 10px
     }
   }
+}
+.outsideWrap{
+  height: 100%;
+  padding: 0 !important;
+}
+.modeType1{
+  height: 68%;
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  position: relative;
+  .sidebar{
+    height: 100%;
+    overflow:scroll;
+    width: 22%;
+    .van-sidebar-item{
+      padding: 10px 12px 10px 8px !important;
+      font-size: 14px !important;
+      text-align: center;
+      border-left: none;
+      background: #f69e2a !important ;
+      color: #fff;
+    }
+    .van-sidebar-item--select{
+      background: #fff !important;
+      color: #f69e2a
+    }
+  }
+  .modeType1-right{
+    width: 76%;
+    overflow: scroll;
+    position: relative;
+    padding-bottom: 25px;
+    height: calc(100% - 25px);
+    .switchItem{
+      padding: 10px 0;
+      margin-bottom: 10px;
+    }
+    .productList{
+      background: #fff;
+      padding: 0;
+      .productItem{
+        float: none;
+        width: 100%;
+        margin: 0;
+        padding: 10px 0;
+        .image{
+          float: left;
+          width: 75px;
+        }
+        .text{
+          padding: 0;
+          float: left;
+          width: calc(96% - 75px);
+          margin-left: 2%;
+        }
+      }
+    }
+  }
+  
 }
 </style>

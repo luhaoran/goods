@@ -6,7 +6,6 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
     state: {
         domain: 'https://good.pinge.pro',
-        userInfo: '',
         setting: '',
         shopCode: '10005',
         request: '',
@@ -31,17 +30,13 @@ const store = new Vuex.Store({
             }
         ],
         nowIndex: 0,
-        user: {
-            id: '536',
-            code: 'e2ed2e34332c39483cba6b42d496605bd7bdc8e5'
-        },
+        user: JSON.parse(localStorage.getItem('user')) || {},
         address: {},
-        editAddress:{}
+        editAddress:{},
+        userInfo:JSON.parse(localStorage.getItem('userInfo')) || {},
+        redTip:JSON.parse(localStorage.getItem('redTip')) || [0,0,0,0],
     },
     mutations: {
-        userInfoSave(state, value) {
-            state.userInfo = value
-        },
         settingSave(state, value) {
             state.setting = value
         },
@@ -76,7 +71,18 @@ const store = new Vuex.Store({
         },
         editAddressSave(state, value) {
             state.editAddress = value
-        }
+        },
+        userInfoSave(state,value){
+            state.userInfo = value;
+            const user = {id:value.userId,code:value.userCode}
+            state.user = user;
+            localStorage.setItem('userInfo',JSON.stringify(value))
+            localStorage.setItem('user',JSON.stringify(user))
+        },
+        redTipSave(state, value) {
+            state.redTip = value
+            localStorage.setItem('redTip',JSON.stringify(value))
+        },
     },
 })
 

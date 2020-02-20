@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom:50px;">
+  <div style="padding-bottom:50px;" :class="setting.modeType == 1 ? 'outsideWrap' : ''">
     <transition name="fade" mode="out-in">
       <router-view></router-view>
     </transition>
@@ -12,11 +12,18 @@
         <span>{{item.name}}</span>
         <img slot="icon" :src="item.icon" />
       </van-tabbar-item> -->
+      <van-overlay :show="showNotWechat" class="isNotWechat">
+        <div class="wrapper" @click.stop>
+          <h3>请在微信客户端打开本页面</h3>
+        </div>
+      </van-overlay>
     </van-tabbar>
   </div>
 </template>
 
 <script>
+import qq from "qq";
+import { Dialog } from "vant";
 import { Notify } from "vant";
 import { mapMutations, mapState } from "vuex";
 export default {
@@ -47,10 +54,12 @@ export default {
         }
       ],
       activeFooter: 0,
-      nums: 0
+      nums: 0,
+      showNotWechat:false
     };
   },
   created() {
+    // this.checkIsWechat();
     const { shopCode } = this.$store.state; //在store获取shopCode
     if (!shopCode) {
       return Notify({ type: "danger", message: "shopCode设置错误!" });
@@ -59,7 +68,6 @@ export default {
   },
   mounted() {
     const nowPath = this.$route.path;
-    console.log(nowPath);
     switch (nowPath) {
       case "/home":
         this.activeFooter = 0;
@@ -74,11 +82,19 @@ export default {
         this.activeFooter = 3;
         break;
     }
-    this.calcCartListNum()
+    this.calcCartListNum();
   },
 
   methods: {
-    ...mapMutations(["settingSave","cartNumsSave","totalPriceSave"]),
+    ...mapMutations(["settingSave", "cartNumsSave", "totalPriceSave"]),
+    //判断是否是微信内置浏览器
+    checkIsWechat() {
+      var ua = window.navigator.userAgent.toLowerCase();
+      if (ua.match(/MicroMessenger/i) != "micromessenger") {
+        //如果不是则显示错误
+        this.showNotWechat = true
+      }
+    },
     getSetting() {
       this.$axios.get("/getSetting").then(res => {
         const { data } = res;
@@ -86,19 +102,64 @@ export default {
           this.$router.push("/close");
         }
         this.settingSave(data.arr);
+        data.arr.outside > 0 && this.calcDistance();
       });
     },
-    calcCartListNum(){
-      let cartNums = 0
-      let totalPrice = 0.00
+    calcDistance() {
+      const _this = this;
+      const { latitude: shopLat, longitude: shopLng } = this.setting;
+      const outsideKm = parseFloat(this.setting.outsideKm) + 0.5;
+      var geolocation = new qq.maps.Geolocation(
+        "S6HBZ-4CSCX-XP74J-7TIBY-CAZXE-QKF6E",
+        "good"
+      );
+      geolocation.getLocation(
+        ({ lat, lng }) => {
+          console.log(lat, lng);
+          const distance = _this.GetDistance(lat, lng, shopLat, shopLng);
+          console.log("distance " + distance);
+          console.log("outsideKm " + outsideKm);
+          if (distance > outsideKm) {
+            Dialog.alert({
+              title: "提示",
+              message: "由于您当前的位置超出了商户可配送的范围，请谨慎下单"
+            });
+          }
+        },
+        error => {
+          console.log(error);
+        },
+        { timeout: 8000 }
+      );
+    },
+    GetDistance(lat1, lng1, lat2, lng2) {
+      var radLat1 = (lat1 * Math.PI) / 180.0;
+      var radLat2 = (lat2 * Math.PI) / 180.0;
+      var a = radLat1 - radLat2;
+      var b = (lng1 * Math.PI) / 180.0 - (lng2 * Math.PI) / 180.0;
+      var s =
+        2 *
+        Math.asin(
+          Math.sqrt(
+            Math.pow(Math.sin(a / 2), 2) +
+              Math.cos(radLat1) *
+                Math.cos(radLat2) *
+                Math.pow(Math.sin(b / 2), 2)
+          )
+        );
+      s = s * 6378.137; // EARTH_RADIUS;
+      s = Math.round(s * 10000) / 10000;
+      return s;
+    },
+    calcCartListNum() {
+      let cartNums = 0;
+      let totalPrice = 0.0;
       this.cartList.forEach(el => {
-        cartNums += el.selNum
-        totalPrice += el.selNum * parseFloat(el.price)
+        cartNums += el.selNum;
+        totalPrice += el.selNum * parseFloat(el.price);
       });
-      console.log(totalPrice)
-      this.cartNumsSave(cartNums)
-      this.totalPriceSave(totalPrice)
-      
+      this.cartNumsSave(cartNums);
+      this.totalPriceSave(totalPrice);
     }
   },
   computed: {
@@ -156,13 +217,23 @@ p {
     margin-top: 10px;
   }
 }
-.fade-enter-active, .fade-leave-active {
-  transition: opacity .3s;
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
   opacity: 0;
 }
-.van-divider{
-  margin: 0 !important
+.van-divider {
+  margin: 0 !important;
+}
+.isNotWechat{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  h3{
+    font-weight: normal
+  }
 }
 </style>

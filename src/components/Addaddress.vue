@@ -39,7 +39,8 @@ export default {
   },
   created() {},
   mounted() {
-    const { editAddress } = this.$store.state;
+    const { editAddress,userInfo } = this.$store.state;
+    this.address.tel = userInfo.phone
     if (editAddress.id) {
       let address = editAddress;
       address.areaCode = address.cityCode;
@@ -92,7 +93,7 @@ export default {
     }
   },
   computed: {
-    ...mapState(["user", "editAddress"])
+    ...mapState(["user", "editAddress","userInfo"])
     
   },
   watch: {}

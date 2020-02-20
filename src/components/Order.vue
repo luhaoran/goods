@@ -26,12 +26,13 @@
     </div>
     <infinite-loading @infinite="infiniteHandler">
       <template slot="no-more">没有更多订单啦</template>
+      <template slot="no-results">这里空空如也</template>
     </infinite-loading>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState,mapMutations } from "vuex";
 import Navbar from "./Navbar";
 import InfiniteLoading from "vue-infinite-loading";
 export default {
@@ -47,9 +48,14 @@ export default {
     };
   },
   created() {},
-  mounted() {},
+  mounted() {
+    let redTip = this.redTip;
+    redTip[0] = 0;
+    this.redTipSave(redTip)
+  },
 
   methods: {
+    ...mapMutations(['redTipSave']),
     infiniteHandler($state) {
       const user = this.user;
       this.$axios
@@ -76,12 +82,12 @@ export default {
     },
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
-      const pic = item.zhutu.split(",");
+      const pic = item.pic.split(",");
       return this.domain + pic;
     }
   },
   computed: {
-    ...mapState(["user", "domain"])
+    ...mapState(["user", "domain","redTip"])
   },
   watch: {}
 };

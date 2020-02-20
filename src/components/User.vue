@@ -4,12 +4,12 @@
     <Navbar name="我的" />
     <div class="userInfo">
       <div>
-        <van-image round width="80" height="80" src="asd">
+        <van-image round width="80" height="80" src>
           <template v-slot:error>
             <i class="avatarr iconfont icon-icon_patriarch"></i>
           </template>
         </van-image>
-        <p class="username">HoNRean_</p>
+        <p class="username">{{userInfo.nickName}}</p>
         <p class="level">- 普通用户 -</p>
       </div>
     </div>
@@ -17,15 +17,16 @@
       <van-col
         span="5"
         class="menuItem"
-        v-for="item in menus"
+        v-for="(item,index) in menus"
         @click="goto(item.to)"
         :key="JSON.stringify(item)"
       >
-        <van-image round width="50" height="50" src>
+        <van-image round width="50" height="50" src dot>
           <template v-slot:error>
             <i class="menuIcon iconfont" :class="item.icon"></i>
           </template>
         </van-image>
+        <span v-if="redTip[index]" class="dot"></span>
         <p>{{item.name}}</p>
       </van-col>
     </van-row>
@@ -41,11 +42,10 @@
         <i class="iconfont icon-zuobiao"></i>
         <span>商户位置查看</span>
       </div>
-      <van-divider />
-      <!-- <div class="funcItem" @click="$router.push('/')">
-        <i class="iconfont icon-dianpu"></i>
-        <span>返回首页</span>
-      </div>-->
+      <div class="funcItem" @click="removeStorage">
+        <i class="iconfont icon-weixin"></i>
+        <span>清除缓存</span>
+      </div>
     </div>
   </div>
 </template>
@@ -64,7 +64,8 @@ export default {
         {
           name: "订单",
           icon: "icon-dingdan",
-          to: "/order"
+          to: "/order",
+          enName: "order"
         },
         {
           name: "统计",
@@ -74,26 +75,34 @@ export default {
         {
           name: "券包",
           icon: "icon-youhuiquan",
-          to: "/coupon"
+          to: "/coupon",
+          enName: "coupon"
         },
         {
           name: "反馈",
           icon: "icon-fankui",
           to: "/feedback"
         }
-      ]
+      ],
+      saveCoupon: []
     };
   },
   created() {},
-  mounted() {},
+  mounted() {
+    console.log(this.redTip);
+  },
 
   methods: {
     goto(url) {
       this.$router.push(url);
+    },
+    removeStorage() {
+      localStorage.removeItem("user");
+      localStorage.removeItem("userInfo");
     }
   },
   computed: {
-    ...mapState(["user"])
+    ...mapState(["user", "userInfo", "redTip"])
   },
   watch: {}
 };
@@ -136,6 +145,7 @@ export default {
   padding: 20px 0;
   .menuItem {
     text-align: center;
+    position: relative;
     .menuIcon {
       color: #888;
       font-size: 31px;
@@ -160,11 +170,22 @@ export default {
       margin-left: 8px;
       font-size: 14px;
     }
-    .tel{
+    .tel {
       display: flex;
       align-items: center;
-      color: inherit
+      color: inherit;
     }
   }
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  display: block;
+  background: #fb7474;
+  position: absolute;
+  right: 12.5px;
+  top: -2.5px;
+  border-radius: 50px;
+  border: 2px #fff solid;
 }
 </style>
