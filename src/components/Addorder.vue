@@ -1,5 +1,5 @@
 <template>
-  <div style="padding-bottom:40px">
+  <div>
     <Navbar name="支付订单" />
     <div class="addordeWraper">
       <div class="addressWrap">
@@ -136,7 +136,7 @@ export default {
     ...mapMutations(["settingSave"]),
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
-      const pic = item.zhutu.split(",");
+      const pic = item.pic.split(",");
       return this.domain + pic;
     },
     getAddressList() {},
@@ -424,7 +424,5 @@ export default {
     border-radius: 5px;
   }
 }
-.van-submit-bar {
-  bottom: 50px !important;
-}
+
 </style>

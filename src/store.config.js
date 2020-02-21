@@ -35,10 +35,19 @@ const store = new Vuex.Store({
         editAddress:{},
         userInfo:JSON.parse(localStorage.getItem('userInfo')) || {},
         redTip:JSON.parse(localStorage.getItem('redTip')) || [0,0,0,0],
+        baseColor:{},
+        baseBgColor:{},
+        baseBdColor:{},
+        color:'#f69e2a'
     },
     mutations: {
         settingSave(state, value) {
-            state.setting = value
+            state.setting = value;
+            const color = value.color || '#f69e2a'
+            state.baseColor = {color:color}
+            state.baseBgColor = {backgroundColor:color}
+            state.baseBdColor = {borderColor:color}
+            state.color = color
         },
         cartListSave(state, value) {
             state.cartList = value;

@@ -3,21 +3,11 @@
     <transition name="fade" mode="out-in">
       <router-view></router-view>
     </transition>
-    <van-tabbar v-model="activeFooter" active-color="#ff9813">
-      <van-tabbar-item  v-for="(item,index) in footer" :key="item.icon" replace :to="item.to" :info="index == 2 ? cartNums : false">
-        <span>{{item.name}}</span>
-        <img slot="icon" :src="item.icon" />
-      </van-tabbar-item>
-      <!-- <van-tabbar-item v-for="item in footer" :key="item.icon" replace :to="item.to">
-        <span>{{item.name}}</span>
-        <img slot="icon" :src="item.icon" />
-      </van-tabbar-item> -->
-      <van-overlay :show="showNotWechat" class="isNotWechat">
-        <div class="wrapper" @click.stop>
-          <h3>请在微信客户端打开本页面</h3>
-        </div>
-      </van-overlay>
-    </van-tabbar>
+    <van-overlay :show="showNotWechat" class="isNotWechat">
+      <div class="wrapper" @click.stop>
+        <h3>请在微信客户端打开本页面</h3>
+      </div>
+    </van-overlay>
   </div>
 </template>
 
@@ -31,31 +21,8 @@ export default {
   components: {},
   data() {
     return {
-      footer: [
-        {
-          icon: require("../..//public/images/md2-ft-1.png"),
-          name: "首页",
-          to: "/"
-        },
-        {
-          icon: require("../..//public/images/md2-ft-2.png"),
-          name: "搜索",
-          to: "/search"
-        },
-        {
-          icon: require("../..//public/images/md2-ft-3.png"),
-          name: "购物车",
-          to: "/cartlist"
-        },
-        {
-          icon: require("../..//public/images/md2-ft-4.png"),
-          name: "我的",
-          to: "/user"
-        }
-      ],
-      activeFooter: 0,
       nums: 0,
-      showNotWechat:false
+      showNotWechat: false
     };
   },
   created() {
@@ -67,21 +34,7 @@ export default {
     this.getSetting();
   },
   mounted() {
-    const nowPath = this.$route.path;
-    switch (nowPath) {
-      case "/home":
-        this.activeFooter = 0;
-        break;
-      case "/serach":
-        this.activeFooter = 1;
-        break;
-      case "/cartlist":
-        this.activeFooter = 2;
-        break;
-      case "/user":
-        this.activeFooter = 3;
-        break;
-    }
+    
     this.calcCartListNum();
   },
 
@@ -92,7 +45,7 @@ export default {
       var ua = window.navigator.userAgent.toLowerCase();
       if (ua.match(/MicroMessenger/i) != "micromessenger") {
         //如果不是则显示错误
-        this.showNotWechat = true
+        this.showNotWechat = true;
       }
     },
     getSetting() {
@@ -177,6 +130,7 @@ export default {
 </script>
 
 <style lang="less">
+
 body {
   margin: 0;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
@@ -227,13 +181,13 @@ p {
 .van-divider {
   margin: 0 !important;
 }
-.isNotWechat{
+.isNotWechat {
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  h3{
-    font-weight: normal
+  h3 {
+    font-weight: normal;
   }
 }
 </style>

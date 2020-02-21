@@ -17,18 +17,18 @@
     <template v-if="setting.modeType == 2">
       <van-sticky>
         <div class="switchItem">
-          <van-dropdown-menu>
+          <van-dropdown-menu :active-color="color">
             <van-dropdown-item v-model="nowIndexb" :options="category" :title="nowName" />
           </van-dropdown-menu>
           <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
-            <van-tag plain type="warning">{{youhui[0]}}</van-tag>
-            <van-tag plain type="warning">更多优惠</van-tag>
+            <van-tag plain type="warning" :color="color">{{youhui[0]}}</van-tag>
+            <van-tag plain type="warning" :color="color">更多优惠</van-tag>
           </div>
           <div class="sortWrap">
             <span
               v-for="(item,index) in sortConfig"
               :key="JSON.stringify(item)"
-              :class="[item.active&&'active']"
+              :style="item.active && baseColor"
               @click="sort(index)"
             >
               {{item.name}}
@@ -55,13 +55,13 @@
             <p class="note" v-else>{{item.name + item.unit}}</p>
 
             <div class="priceAndNums">
-              <p class="price">￥{{item.price}}</p>
+              <p class="price" :style="baseColor">￥{{item.price}}</p>
               <div class="numbers" v-if="item.num > 0">
                 <template v-if="item.selNum > 0">
-                  <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(item)"></i>
+                  <i class="basecolor iconfont icon-icon_roundreduce_fil" :style="baseColor" @click="numRed(item)"></i>
                   <span>{{item.selNum}}</span>
                 </template>
-                <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(item)"></i>
+                <i class="basecolor iconfont icon-icon_roundadd_fill" :style="baseColor" @click="numAdd(item)"></i>
               </div>
               <van-tag v-else>已售罄</van-tag>
             </div>
@@ -70,6 +70,14 @@
       </div>
     </template>
     <template v-if="setting.modeType == 1">
+      <div class="modeType1-search-user clearfix">
+        <div class="mt1-search" @click="goto('/search')">
+          <van-search v-model="value" class="search" round disabled placeholder="请输入搜索关键词" />
+        </div>
+        <div class="mt1-user" @click="goto('/user')">
+          <i class="iconfont icon-yonghu1"></i> 用户中心
+        </div>
+      </div>
       <div class="modeType1">
         <van-sidebar v-model="nowIndexb" class="sidebar">
           <van-sidebar-item
@@ -81,8 +89,8 @@
         <div class="modeType1-right">
           <div class="switchItem">
             <div class="youhui" v-if="youhui.length" @click="showYouhuiVisible=true">
-              <van-tag plain type="warning">{{youhui[0]}}</van-tag>
-              <van-tag plain type="warning">更多优惠</van-tag>
+              <van-tag plain type="warning" :color="color">{{youhui[0]}}</van-tag>
+              <van-tag plain type="warning" :color="color">更多优惠</van-tag>
             </div>
             <div class="sortWrap">
               <span
@@ -98,10 +106,7 @@
           </div>
           <div class="productList" ref="productList">
             <template v-for="(item,index) in nowProducts">
-              <div
-                class="productItem clearfix"
-                :key="JSON.stringify(item)"
-              >
+              <div class="productItem clearfix" :key="JSON.stringify(item)">
                 <van-image
                   @click="showDetail(item)"
                   width="75"
@@ -119,13 +124,17 @@
                   <p class="note" v-else>{{item.name + item.unit}}</p>
 
                   <div class="priceAndNums">
-                    <p class="price">￥{{item.price}}</p>
+                    <p class="price" :style="baseColor">￥{{item.price}}</p>
                     <div class="numbers" v-if="item.num > 0">
                       <template v-if="item.selNum > 0">
-                        <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(item)"></i>
+                        <i
+                          class="basecolor iconfont icon-icon_roundreduce_fil"
+                          :style="baseColor"
+                          @click="numRed(item)"
+                        ></i>
                         <span>{{item.selNum}}</span>
                       </template>
-                      <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(item)"></i>
+                      <i class="basecolor iconfont icon-icon_roundadd_fill" :style="baseColor" @click="numAdd(item)"></i>
                     </div>
                     <van-tag v-else>已售罄</van-tag>
                   </div>
@@ -136,6 +145,15 @@
           </div>
         </div>
       </div>
+      <div class="mt1-footer" @click="goto('/cartlist')">
+        <div class="mt1-cart">
+          <i class="iconfont icon-dianpu" :style="baseColor"></i>
+          <i class="cartNums" v-if="cartNums > 0">{{cartNums}}</i>
+          <span v-if="totalPrice > 0" class="totalPrice">￥{{totalPrice}}</span>
+          <span v-else>未选购商品</span>
+        </div>
+        <p :style="baseBgColor">提交订单</p>
+      </div>
     </template>
     <van-popup
       v-model="showDetailVisible"
@@ -144,6 +162,7 @@
       :style="{ height: '96%' }"
       closeable
       close-icon-position="top-left"
+      
     >
       <div class="detailModal">
         <swiper ref="mySwiper" style="height: 220px">
@@ -159,13 +178,13 @@
           </p>
           <p class="note" v-if="nowProduct.info">{{nowProduct.info}}</p>
           <div class="priceAndNums">
-            <p class="price">￥{{nowProduct.price}}</p>
+            <p class="price" :style="baseColor">￥{{nowProduct.price}}</p>
             <div class="numbers" v-if="nowProduct.num > 0">
               <template v-if="nowProduct.selNum > 0">
-                <i class="basecolor iconfont icon-icon_roundreduce_fil" @click="numRed(nowProduct)"></i>
+                <i class="basecolor iconfont icon-icon_roundreduce_fil" :style="baseColor" @click="numRed(nowProduct)"></i>
                 <span>{{nowProduct.selNum}}</span>
               </template>
-              <i class="basecolor iconfont icon-icon_roundadd_fill" @click="numAdd(nowProduct)"></i>
+              <i class="basecolor iconfont icon-icon_roundadd_fill" :style="baseColor" @click="numAdd(nowProduct)"></i>
             </div>
             <van-tag v-else>已售罄</van-tag>
           </div>
@@ -210,6 +229,21 @@
         </div>
       </div>
     </van-popup>
+
+    <!-- 首页导航 -->
+    <!-- <van-tabbar v-model="activeFooter">
+      <van-tabbar-item v-for="item in footer" :key="item.icon" replace @click="goto(item.to)">
+        <span>{{item.name}}</span>
+        <img slot="icon" :src="item.icon" />
+      </van-tabbar-item>
+    </van-tabbar>-->
+    <div class="homeFooter" v-if="setting.modeType == 2">
+      <div class="item" v-for="(item,index) in footer" :key="item.icon" @click="goto(item.to)">
+        <span class="cartNums" v-if="index == 2 && cartNums > 0" :style="baseBgColor">{{cartNums}}</span>
+        <van-image width="20" height="20" :src="item.icon"></van-image>
+        <p>{{item.name}}</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -239,7 +273,31 @@ export default {
       showYouhuiVisible: false,
       nowIndexb: 0,
       notice: {},
-      showNotice: false
+      showNotice: false,
+      value:'',
+      footer: [
+        {
+          icon: require("../..//public/images/md2-ft-1.png"),
+          name: "首页",
+          to: "/"
+        },
+        {
+          icon: require("../..//public/images/md2-ft-2.png"),
+          name: "搜索",
+          to: "/search"
+        },
+        {
+          icon: require("../..//public/images/md2-ft-3.png"),
+          name: "购物车",
+          to: "/cartlist"
+        },
+        {
+          icon: require("../..//public/images/md2-ft-4.png"),
+          name: "我的",
+          to: "/user"
+        }
+      ],
+      activeFooter: 0
     };
   },
   created() {
@@ -264,11 +322,14 @@ export default {
         if (data.status === 1) {
           this.notice = data.data;
           this.showNotice = true;
-        } 
+        }
       });
     },
     gotoArticle(id) {
       this.$router.push(`/article?id=${id}`);
+    },
+    goto(to) {
+      to != "/" && this.$router.push(to);
     },
     getCategory() {
       const { cartList } = this.$store.state;
@@ -439,7 +500,12 @@ export default {
       "cartNums",
       "sortConfig",
       "nowIndex",
-      "setting"
+      "setting",
+      "totalPrice",
+      "baseColor",
+      "baseBgColor",
+      "color",
+      "baseBdColor"
     ]),
     swiper() {
       return this.$refs.mySwiper.swiper;
@@ -612,7 +678,7 @@ height: 0;
   padding: 0 !important;
 }
 .modeType1{
-  height: 68%;
+  height: 62%;
   display: flex;
   width: 100%;
   flex-wrap: wrap;
@@ -644,6 +710,7 @@ height: 0;
     .switchItem{
       padding: 10px 0;
       margin-bottom: 10px;
+      border-top: none !important;
     }
     .productList{
       background: #fff;
@@ -665,7 +732,126 @@ height: 0;
         }
       }
     }
+  } 
+}
+.homeFooter{
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .item{
+    width: 23%;
+    text-align: center;
+    position: relative;
+    p{
+      font-size: 12px;
+      margin: 0;
+    }
+    .cartNums{
+      position: absolute;
+      font-size: 10px;
+      background: @baseColor;
+      color: #fff;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      right: 30%;
+      top: 0;
+      z-index: 99;
+    }
   }
-  
+}
+.modeType1-search-user{
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  border-top: 1px solid #ddd;
+  .mt1-search{
+    width: 72%;
+    .search{
+      padding:3px 5px;
+      .van-search__content{
+        background: #fff !important
+      }
+      
+    }
+  }
+  .mt1-user{
+    width: 28%;
+    background: #eee;
+    font-size: 14px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-weight: bold;
+    i{
+      font-size: 20px;
+      margin-right: 6px;
+      font-weight: normal;
+    }
+  }
+}
+.mt1-footer{
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50px;
+  background: #404040;
+  display: flex;
+  .mt1-cart{
+    width: 68%;
+    display: flex;
+    align-items: center;
+    .iconfont{
+      color: @baseColor;
+      font-size: 30px;
+      margin-left: 10px;
+    }
+    span{
+      margin-left: 10px;
+      color: #d4d4d4
+    }
+    span.totalPrice{
+      color: #fff;
+      font-size: 22px;
+    }
+    .cartNums{
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      background: @baseColor;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-style: normal;
+      top: 2px;
+      left: 28px;
+    }
+  }
+  p{
+    width: 32%;
+    height: 50px;
+    color: #fff;
+    background: @baseColor;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 </style>

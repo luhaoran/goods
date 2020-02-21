@@ -44,7 +44,7 @@ export default {
     ...mapMutations(["cartListSave"]),
     getZhutu(item) {
       if (item.zhutu) return this.domain + item.zhutu;
-      const pic = item.zhutu.split(",");
+      const pic = item.pic.split(",");
       return this.domain + pic;
     },
     numAdd(item) {
@@ -89,7 +89,5 @@ export default {
 .van-button--mini {
   min-width: 35px !important;
 }
-.van-submit-bar {
-  bottom: 50px !important;
-}
+
 </style>
